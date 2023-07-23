@@ -1,8 +1,9 @@
 import  { useState,useEffect } from "react";
 import Datepicker from "react-tailwindcss-datepicker"; 
-import { DatepickerType , DateValueType } from "react-tailwindcss-datepicker/dist/types";
+// import { DatepickerType , DateValueType } from "react-tailwindcss-datepicker/dist/types";
 
 import Modal from "./Modal";
+import { Skeleton } from ".";
 
 type capsuleType = {
     docs: [{
@@ -35,6 +36,7 @@ export function DataGrid(){
     const status = [ "active" , "destroyed", "retired",  "unknown"]
     const types = [ "Dragon 1.0" , "Dragon 1.1" , "Dragon 2.0"]
 
+    const [isloading,setIsLoading] = useState(false)
     const [data , setData] = useState<capsuleType>()
     const [launch , setLauch] = useState<launchType>([])
     const [isOpen,setIsOpen] = useState(false)
@@ -46,11 +48,14 @@ export function DataGrid(){
         }
     })
     const [value, setValue] = useState({ 
-        startDate: new Date(), 
-        endDate: new Date().setMonth(12)
+        // startDate: new Date(), 
+        // endDate: new Date().setMonth(12)
+        startDate: null, 
+        endDate: null
         }); 
 
-    const handleValueChange = (newValue: DatepickerType["value"] | null) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleValueChange = (newValue: any) => {
         setValue(newValue); 
         }    
     
@@ -94,16 +99,14 @@ export function DataGrid(){
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = (event: any) => {
         event.preventDefault()
-        // console.log("newValue:", value); 
-        // console.log(event.target.type.value)
-        // console.log(event.target.status.value)
+      
         setQuery(
             prevState => ({
                 "query": {
                     ...prevState.query,
                     "date_utc": {
-                        "$gte": new Date(value.endDate).toISOString(),
-                        "$lte": new Date(value.startDate).toISOString() 
+                        "$gte": new Date(value.endDate!).toISOString(),
+                        "$lte": new Date(value.startDate!).toISOString() 
                      },
                      "$or": [
                         {
@@ -124,7 +127,7 @@ export function DataGrid(){
    
     useEffect(() => {
         const fetchCapsuleData = () => {
-         
+            setIsLoading(true)
             fetch(url, {
                method: 'POST',
                //mode: 'cors',
@@ -139,6 +142,7 @@ export function DataGrid(){
             }).then(response => response.json())
             .then(data => {
                 setData(data)
+                setIsLoading(false)
             })
             .catch(function(error){
               console.log("Request failed" , error)
@@ -149,20 +153,20 @@ export function DataGrid(){
     },[query])
 
     return (
-      <div className="container px-4 py-10 mx-auto">
+      <div className="container px-4 py-10 mx-auto" id="datagrid">
         <p className="font-sora font-bold text-xl text-center mb-6">
           {" "}
           Search for capsule information
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-row gap-6 mb-6 justify-center">
-          <div className="date--range-filter">
+        <form onSubmit={handleSubmit} className="flex flex-row flex-wrap gap-6 mb-12 justify-center">
+          <div className="date--range-filter flex-auto w-100">
             <Datepicker 
                value={value} 
                onChange={handleValueChange} 
-               className="border border-gray-300"
+               
                />
           </div>
-          <div >
+          <div className="flex-auto w-100">
             <select
               name="type"
               className="font-sora bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -189,7 +193,7 @@ export function DataGrid(){
               })}
             </select>
           </div>
-          <div>
+          <div className="flex-auto w-100">
             <select
               id="status"
               name="status"
@@ -220,7 +224,7 @@ export function DataGrid(){
           <button
             type="submit"
             // className="px-3 py-2 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            className="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+            className="font-sora  justify-center flex-auto w-100 text-center py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
           >
             {/* <svg
               aria-hidden="true"
@@ -243,161 +247,199 @@ export function DataGrid(){
           </button>
         </form>
         <div>
-          <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  {tableHeader.map((item, index) => {
-                    return (
-                      <th
-                        key={"data--grid--" + index}
-                        scope="col"
-                        className="font-sora font-medium px-6 py-3"
-                      >
-                        {item}
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {data?.docs.map((item, index) => {
-                  return (
-                    <tr
-                      key={item?.id + "--" + index}
-                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+            {
+                isloading ? ( <Skeleton />) : (
+                    <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+                    <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                      <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                          {tableHeader.map((item, index) => {
+                            return (
+                              <th
+                                key={"data--grid--" + index}
+                                scope="col"
+                                className="font-sora font-medium px-6 py-3"
+                              >
+                                {item}
+                              </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data?.docs.map((item, index) => {
+                          return (
+                            <tr
+                              key={item?.id + "--" + index}
+                              className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                            >
+                              <td className="px-6 py-4 font-sora font-normal">
+                                {item.type}
+                              </td>
+                              <td className="px-6 py-4 font-sora font-normal">
+                                {item.serial}
+                              </td>
+                              <td className="px-6 py-4 font-sora font-normal">
+                                {item.water_landings}{" "}
+                                {item.water_landings > 1
+                                  ? " water landings"
+                                  : " water landing"}{" "}
+                              </td>
+                              <td className="px-6 py-4 font-sora font-normal">
+                                {item.land_landings}{" "}
+                                {item.land_landings > 1
+                                  ? " land landings"
+                                  : " land landing"}
+                              </td>
+                              <td className="px-6 py-4 font-sora font-normal w-[30rem]">
+                                {item.last_update}
+                              </td>
+                              <td className="px-6 py-4 font-sora font-normal">
+                                <button
+                                  type="button"
+                                  onClick={() => lauchModal(item.launches)}
+                                  className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 font-sora "
+                                >
+                                  View Details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <nav
+                      className="flex flex-wrap items-center justify-between p-6"
+                      aria-label="Table navigation"
                     >
-                      <td className="px-6 py-4 font-sora font-normal">
-                        {item.type}
-                      </td>
-                      <td className="px-6 py-4 font-sora font-normal">
-                        {item.serial}
-                      </td>
-                      <td className="px-6 py-4 font-sora font-normal">
-                        {item.water_landings}{" "}
-                        {item.water_landings > 1
-                          ? " water landings"
-                          : " water landing"}{" "}
-                      </td>
-                      <td className="px-6 py-4 font-sora font-normal">
-                        {item.land_landings}{" "}
-                        {item.land_landings > 1
-                          ? " land landings"
-                          : " land landing"}
-                      </td>
-                      <td className="px-6 py-4 font-sora font-normal w-[30rem]">
-                        {item.last_update}
-                      </td>
-                      <td className="px-6 py-4 font-sora font-normal">
+                      <span className="font-sora text-sm font-normal text-gray-500 dark:text-gray-400">
+                        Showing{" "}
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {data?.page}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {data?.totalPages} pages
+                        </span>
+                      </span>
+                      <div className="inline-flex mt-2 xs:mt-0">
                         <button
-                          type="button"
-                          onClick={() => lauchModal(item.launches)}
-                          className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 font-sora "
+                          className="font-sora flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 rounded-none hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          onClick={previousPage}
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                          disabled={data?.hasPrevPage! ? false : true}
+                          //className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                         >
-                          View Details
+                          <svg
+                            className="w-3.5 h-3.5 mr-2"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 10"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 5H1m0 0 4 4M1 5l4-4"
+                            />
+                          </svg>
+                          Prev
                         </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            <nav
-              className="flex items-center justify-between p-6"
-              aria-label="Table navigation"
-            >
-              <span className="font-sora text-sm font-normal text-gray-500 dark:text-gray-400">
-                Showing{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {data?.page}
-                </span>{" "}
-                of{" "}
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {data?.totalPages} pages
-                </span>
-              </span>
-              <div className="inline-flex mt-2 xs:mt-0">
-                <button
-                  className="font-sora flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 rounded-none hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  onClick={previousPage}
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-                  disabled={data?.hasPrevPage! ? false : true}
-                  //className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                >
-                  <svg
-                    className="w-3.5 h-3.5 mr-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 5H1m0 0 4 4M1 5l4-4"
-                    />
-                  </svg>
-                  Prev
-                </button>
-                <button
-                  //className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  className="font-sora flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 border-0 border-l border-gray-700 rounded-none hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  onClick={nextPage}
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-                  disabled={data?.hasNextPage! ? false : true}
-                >
-                  Next
-                  <svg
-                    className="w-3.5 h-3.5 ml-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 10"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M1 5h12m0 0L9 1m4 4L9 9"
-                    />
-                  </svg>
-                </button>
-              </div>
-              {/* <ul className="inline-flex -space-x-px text-sm h-8">
-                <li>
-                  <button
-                    onClick={previousPage}
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-                    disabled={data?.hasPrevPage! ? false : true}
-                    className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    Previous
-                  </button>
-                </li>
-
-                <li>
-                  <button
-                    onClick={nextPage}
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-                    disabled={data?.hasNextPage! ? false : true}
-                    className="cursor-pointer flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    Next
-                  </button>
-                </li>
-              </ul> */}
-            </nav>
-          </div>
+                        <button
+                          //className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          className="font-sora flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 border-0 border-l border-gray-700 rounded-none hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          onClick={nextPage}
+                          // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                          disabled={data?.hasNextPage! ? false : true}
+                        >
+                          Next
+                          <svg
+                            className="w-3.5 h-3.5 ml-2"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 14 10"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M1 5h12m0 0L9 1m4 4L9 9"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      {/* <ul className="inline-flex -space-x-px text-sm h-8">
+                        <li>
+                          <button
+                            onClick={previousPage}
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                            disabled={data?.hasPrevPage! ? false : true}
+                            className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          >
+                            Previous
+                          </button>
+                        </li>
+        
+                        <li>
+                          <button
+                            onClick={nextPage}
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                            disabled={data?.hasNextPage! ? false : true}
+                            className="cursor-pointer flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                          >
+                            Next
+                          </button>
+                        </li>
+                      </ul> */}
+                    </nav>
+                  </div>
+                )
+            }
+           
+         
         </div>
         <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
           <div className="flex flex-col py-10">
-            <h2 className="font-sora font-bold text-center text-lg mb-10">
+            <h2 className="font-sora font-bold text-center md:text-lg text-base mb-10">
               Details of Capsule Launches
             </h2>
-            <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <div className="md:hidden">
+            {
+                launch.map((launch ,index: number) => {
+                    return (
+                      <div key={"details--mobile--" + index} className="flex flex-col mb-6 items-center bg-white border border-gray-200 rounded-lg shadow md:flex-row md:max-w-xl hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                       
+                         {launch.links?.flickr.original.length > 0 ? (
+                            
+                              <img
+                                className="object-cover w-full rounded-t-lg h-96 md:h-auto md:w-48 md:rounded-none md:rounded-l-lg"
+                                src={launch.links?.flickr.original[0]}
+                                alt="launch image"
+                              />
+                            ) : null}
+                        <div className="flex flex-col justify-between p-4 leading-normal">
+                          <h5 className="font-sora mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                             {launch.name}
+                          </h5>
+                          <p className="font-sora mb-3 text-sm font-normal text-gray-700 dark:text-gray-400">
+                             {launch.details === null ? "N/A" : launch.details}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                })
+             }
+            </div>
+             
+
+
+
+
+            <div className="relative overflow-x-auto shadow-md sm:rounded-lg md:block hidden">
               <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                   <tr>
@@ -422,16 +464,16 @@ export function DataGrid(){
                         className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                       >
                         <td className="px-6 py-4 font-sora font-normal">
-                          <div className="flex flex-row items-center gap-5 mr-6">
+                          <div className="flex flex-row items-center gap-5 mr-10">
                             {launch.links?.flickr.original.length > 0 ? (
                               <img
                                 width="200"
-                                height="150"
+                                height="100"
                                 src={launch.links?.flickr.original[0]}
                                 alt="launch image"
                               />
                             ) : null}
-                            <p>{launch.name}</p>
+                            <p className="font-sora font-normal">{launch.name}</p>
                           </div>
                         </td>
                         <td className="px-6 py-4 font-sora font-normal">
@@ -445,7 +487,7 @@ export function DataGrid(){
                             }
                           )}
                         </td>
-                        <td className="px-6 py-4 font-sora font-normal w-[35rem]">
+                        <td className="px-6 py-4 font-sora font-normal w-[30rem]">
                           {launch.details === null ? "N/A" : launch.details}
                         </td>
                       </tr>
