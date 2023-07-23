@@ -28,13 +28,13 @@ const Modal = ({ isOpen, onClose, children }: {isOpen: boolean , onClose: () => 
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="fixed inset-0 bg-gray-500 bg-opacity-10  transition-opacity"></div>
           <div
-            className="bg-white w-11/12  lg:w-10/12   z-10 overflow-auto lg:max-h-[50rem] md:max-h-[40rem] max-h-[48rem]"
+            className="bg-white w-full  lg:w-9/12   z-10 overflow-auto lg:max-h-[50rem] md:max-h-[40rem] max-h-[48rem]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
-            <div className="p-4">
-              <div className="flex justify-end relative p-4 mt-8 md:mt-0">
+            <div className="p-8">
+              <div className="flex justify-end relative p-2 mt-4 md:mt-0">
                 <button
                   className="bg-transparent focus:outline-none md:relative fixed"
                   onClick={onClose}
