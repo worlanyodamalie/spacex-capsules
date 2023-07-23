@@ -6,6 +6,10 @@
   width: 100%;
 }
 
+html{
+  scroll-behavior: smooth !important;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
