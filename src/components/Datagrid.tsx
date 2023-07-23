@@ -1,35 +1,119 @@
-import React , { useState,useEffect } from "react";
+import  { useState,useEffect } from "react";
+import Modal from "./Modal";
 
 export function DataGrid(){
-    const tableHeader = ['Type' , 'Serial' ,  'Water landings' , 'Land landings' , 'Last update' ];
+    const tableHeader = ['Type' , 'Serial' ,  'Water landings' , 'Land landings' , 'Last update', ''];
     
+    const launchTableHeader = ['Name','Date ' , 'Details']
+
     const url = "http://127.0.0.1:8000/capsules";
+    
+    const [count, setCount] = useState(1)
 
     const [query,setQuery] = useState({
         "query": {},
         "options": {
-            "populate": ["launches"]
+            "populate": ["launches"],
+            page: 1
         }
     })
+    
+    const previousPage = () => {
+        setQuery(
+             prevState => ({
+                 "query": {
+                     ...prevState.query
+                 },
+                 "options": {
+                     ...prevState.options,
+                     page: prevState.options.page - 1
+                 }
+             })
+         )
+    
+ }
+   
 
-    const fetchCapsuleData = () => {
-          fetch(url, {
-             method: 'POST',
-             headers: {
-                "Content-Type": "application/json"
-             },
-             body: JSON.stringify(query)
-          }).then(function(response) {
-               console.log("res" , response.text())
-                return response.text()
-          }).catch(function(error){
-            console.log("Request failed" , error)
-          })
+    const nextPage = () => {
+           setQuery(
+                prevState => ({
+                    "query": {
+                        ...prevState.query
+                    },
+                    "options": {
+                        ...prevState.options,
+                        page: prevState.options.page + 1
+                    }
+                })
+            )
+       
     }
+
+    type capsuleType = {
+        docs: [{
+            id:string,
+            reuse_count:number,
+            water_landings:number,
+            land_landings:number,
+            last_update:string,
+            serial:string,
+            status:string,
+            type:string,
+            launches: {links: {flickr: {original: string[] }} , details: string | null ,date_local: string , name: string}[]
+        }],
+        totalDocs: number,
+        totalPages: number,
+        page: number,
+        hasNextPage: boolean,
+        hasPrevPage: boolean
+        
+        //launches:[]{name:string}
+    }
+
+    type launchType = {links: {flickr: {original: string[] }} , details: string | null ,date_local: string , name: string}[]
+
+    const [data , setData] = useState<capsuleType>()
+    const [launch , setLauch] = useState<launchType>([])
+    
+    const [isOpen,setIsOpen] = useState(false)
+
+    const lauchModal = (launch: launchType) => {
+        setLauch(launch)
+        setIsOpen(true)
+    }
+   
+    useEffect(() => {
+        const fetchCapsuleData = () => {
+         
+            fetch(url, {
+               method: 'POST',
+               //mode: 'cors',
+               //credentials: 'include',
+               headers: {
+                  "Content-Type": "application/json",
+                //   "Access-Control-Allow-Origin": "*",
+               },
+               //credentials: 'same-origin',
+               body: JSON.stringify(query),
+               redirect: 'follow'
+            }).then(response => response.json())
+            .then(data => {
+                setData(data)
+            })
+            .catch(function(error){
+              console.log("Request failed" , error)
+            })
+      }
+  
+        fetchCapsuleData()
+    },[query])
 
     return (
       <div className="container px-4 py-10 mx-auto">
-        <p className="font-sora font-bold text-xl text-center mb-6"> Search for capsule information</p>
+        <p className="font-sora font-bold text-xl text-center mb-6">
+          {" "}
+          Search for capsule information
+        </p>
         <form className="flex flex-row gap-3 mb-6 justify-center">
           <div className="">
             <input
@@ -78,18 +162,6 @@ export function DataGrid(){
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                  {/* <th scope="col" className="p-4">
-                    <div className="flex items-center">
-                      <input
-                        id="checkbox-all-search"
-                        type="checkbox"
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      />
-                      <label htmlFor="checkbox-all-search" className="sr-only">
-                        checkbox
-                      </label>
-                    </div>
-                  </th> */}
                   {tableHeader.map((item, index) => {
                     return (
                       <th
@@ -104,98 +176,202 @@ export function DataGrid(){
                 </tr>
               </thead>
               <tbody>
-                <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                  <td className="px-6 py-4">Silver</td>
-                  <td className="px-6 py-4">Laptop</td>
-                  <td className="px-6 py-4">$2999</td>
-                  <td className="px-6 py-4">$2999</td>
-                  <td className="px-6 py-4">
-                    <a
-                      href="#"
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                {data?.docs.map((item, index) => {
+                  return (
+                    <tr
+                      key={item?.id + "--" + index}
+                      className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                     >
-                      Edit
-                    </a>
-                  </td>
-                </tr>
+                      <td className="px-6 py-4 font-sora font-normal">
+                        {item.type}
+                      </td>
+                      <td className="px-6 py-4 font-sora font-normal">
+                        {item.serial}
+                      </td>
+                      <td className="px-6 py-4 font-sora font-normal">
+                        {item.water_landings}{" "}
+                        {item.water_landings > 1
+                          ? " water landings"
+                          : " water landing"}{" "}
+                      </td>
+                      <td className="px-6 py-4 font-sora font-normal">
+                        {item.land_landings}{" "}
+                        {item.land_landings > 1
+                          ? " land landings"
+                          : " land landing"}
+                      </td>
+                      <td className="px-6 py-4 font-sora font-normal w-[30rem]">
+                        {item.last_update}
+                      </td>
+                      <td className="px-6 py-4 font-sora font-normal">
+                        <button
+                          type="button"
+                          onClick={() => lauchModal(item.launches)}
+                          className="text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 font-sora "
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <nav
               className="flex items-center justify-between p-6"
               aria-label="Table navigation"
             >
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+              <span className="font-sora text-sm font-normal text-gray-500 dark:text-gray-400">
                 Showing{" "}
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  1-10
+                  {data?.page}
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  1000
+                  {data?.totalPages} pages
                 </span>
               </span>
-              <ul className="inline-flex -space-x-px text-sm h-8">
+              <div className="inline-flex mt-2 xs:mt-0">
+                <button 
+                    className="font-sora flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 rounded-none hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"   
+                    onClick={previousPage}
+                  // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                  disabled={data?.hasPrevPage! ? false : true}
+                  //className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+
+                >
+                  <svg
+                    className="w-3.5 h-3.5 mr-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 5H1m0 0 4 4M1 5l4-4"
+                    />
+                  </svg>
+                  Prev
+                </button>
+                <button 
+                 //className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                 className="font-sora flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-gray-800 border-0 border-l border-gray-700 rounded-none hover:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                 onClick={nextPage}
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                disabled={data?.hasNextPage! ? false : true}
+                >
+                  Next
+                  <svg
+                    className="w-3.5 h-3.5 ml-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 10"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M1 5h12m0 0L9 1m4 4L9 9"
+                    />
+                  </svg>
+                </button>
+              </div>
+              {/* <ul className="inline-flex -space-x-px text-sm h-8">
                 <li>
-                  <a
-                    href="#"
-                    className="flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  <button
+                    onClick={previousPage}
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                    disabled={data?.hasPrevPage! ? false : true}
+                    className="cursor-pointer flex items-center justify-center px-3 h-8 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                   >
                     Previous
-                  </a>
+                  </button>
                 </li>
+
                 <li>
-                  <a
-                    href="#"
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    1
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    2
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    aria-current="page"
-                    className="flex items-center justify-center px-3 h-8 text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white"
-                  >
-                    3
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    4
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                  >
-                    5
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                  <button
+                    onClick={nextPage}
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                    disabled={data?.hasNextPage! ? false : true}
+                    className="cursor-pointer flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                   >
                     Next
-                  </a>
+                  </button>
                 </li>
-              </ul>
+              </ul> */}
             </nav>
           </div>
         </div>
+        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+          <div className="flex flex-col py-10">
+            <h2 className="font-sora font-bold text-center text-lg mb-10">
+              Details of Capsule Launches
+            </h2>
+            <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                  <tr>
+                    {launchTableHeader.map((item, index) => {
+                      return (
+                        <th
+                          key={"data--grid--" + index}
+                          scope="col"
+                          className="font-sora font-medium px-6 py-3"
+                        >
+                          {item}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {launch?.map((launch, index: number) => {
+                    return (
+                      <tr
+                        key={"launch--" + index}
+                        className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                      >
+                        <td className="px-6 py-4 font-sora font-normal">
+                          <div className="flex flex-row items-center gap-5 mr-6">
+                            {launch.links?.flickr.original.length > 0 ? (
+                              <img
+                                width="200"
+                                height="150"
+                                src={launch.links?.flickr.original[0]}
+                                alt="launch image"
+                              />
+                            ) : null}
+                            <p>{launch.name}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-sora font-normal">
+                          {new Date(launch.date_local).toLocaleDateString(
+                            "en-us",
+                            {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-sora font-normal w-[35rem]">
+                          {launch.details === null ? "N/A" : launch.details}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Modal>
       </div>
     );
 }
