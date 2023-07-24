@@ -134,12 +134,12 @@ export function DataGrid(){
                //credentials: 'include',
                headers: {
                   "Content-Type": "application/json",
-                //   "Access-Control-Allow-Origin": "*",
                },
-               //credentials: 'same-origin',
-               body: JSON.stringify(query),
-               redirect: 'follow'
-            }).then(response => response.json())
+               body: JSON.stringify(query)
+            //    redirect: 'follow'
+            })
+            .then(response => response.json())
+            //.then(response => response.text())
             .then(data => {
                 setData(data)
                 setIsLoading(false)
@@ -158,7 +158,7 @@ export function DataGrid(){
           {" "}
           Search for capsule information
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-row flex-wrap gap-6 mb-12 justify-center">
+        <form data-testid="form-element" onSubmit={handleSubmit} className="flex flex-row flex-wrap gap-6 mb-12 justify-center">
           <div className="date--range-filter flex-auto w-100">
             <Datepicker 
                value={value} 
@@ -169,10 +169,10 @@ export function DataGrid(){
           <div className="flex-auto w-100">
             <select
               name="type"
+              data-testid="html-type-select-element"
               className="font-sora bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             >
               <option
-                selected
                 className="font-sora font-normal"
                 value=""
                 disabled
@@ -196,11 +196,11 @@ export function DataGrid(){
           <div className="flex-auto w-100">
             <select
               id="status"
+              data-testid="html-status-select-element"
               name="status"
               className="font-sora bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             >
               <option
-                selected
                 className="font-sora font-normal"
                 value=""
                 disabled
