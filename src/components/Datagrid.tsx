@@ -38,7 +38,6 @@ export function DataGrid(){
     const types = [ "Dragon 1.0" , "Dragon 1.1" , "Dragon 2.0"]
 
     const [isloading,setIsLoading] = useState(false)
-    const [token , setToken] = useState("");
     const [data , setData] = useState<capsuleType>()
     const [launch , setLauch] = useState<launchType>([])
     const [isOpen,setIsOpen] = useState(false)
@@ -46,7 +45,11 @@ export function DataGrid(){
         "query": {},
         "options": {
             "populate": ["launches"],
-            page: 1
+            page: 1,
+            "sort": {
+                "flight_number":"desc"
+              }
+           
         }
     })
     const [value, setValue] = useState({ 
@@ -103,23 +106,45 @@ export function DataGrid(){
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleSubmit = (event: any) => {
         event.preventDefault()
-      
+        // const endDate = new Date(value.endDate!).toISOString()
+        // const startDate = new Date(value.startDate!).toISOString()
+        
+        // console.log(`start date: ${startDate} -- end date: ${endDate}`)
+
         setQuery(
             prevState => ({
                 "query": {
                     ...prevState.query,
-                    "date_utc": {
-                        "$gte": new Date(value.endDate!).toISOString(),
-                        "$lte": new Date(value.startDate!).toISOString() 
-                     },
-                     "$or": [
+                    // "date_utc": {
+                    //     "$lte": new Date(value.startDate!).toISOString() ,
+                    //     "$gte": new Date(value.endDate!).toISOString(),
+                        
+                    //  },
+                    
+                    
+                    "$or": [
                         {
-                            "status": event.target.status.value
+                            "status":  event.target.status.value.length === 0 ? null : event.target.status.value
                         },
                         {
-                            "type": event.target.type.value
+                            "type":  event.target.type.value.length === 0 ? null : event.target.type.value
+                        },
+                        {
+                            "serial": event.target.serial.value === 0 ? null : event.target.serial.value.toUpperCase(),
                         }
+                    
                     ]
+                   
+                    
+                    // "date_precision": {
+                    //     "$in": [
+                    //       "month",
+                    //       "day"
+                    //     ]
+                    //   }
+                    // "status":  event.target.status.value.length === 0 ? null : event.target.status.value,
+                    // "type":  event.target.type.value.length === 0 ? null : event.target.type.value
+
                 },
                 "options": {
                     ...prevState.options,
@@ -180,11 +205,18 @@ export function DataGrid(){
         </p>
         <form data-testid="form-element" onSubmit={handleSubmit} className="flex flex-row flex-wrap gap-6 mb-12 justify-center">
           <div className="date--range-filter flex-auto w-100">
-            <Datepicker 
+            {/* <Datepicker 
                value={value} 
                onChange={handleValueChange} 
                
-               />
+               /> */}
+               <input 
+                      type="text" 
+                      name="serial" 
+                      placeholder="Search by serial number"
+                      className="font-sora bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+
+                      />
           </div>
           <div className="flex-auto w-100">
             <select
@@ -195,7 +227,6 @@ export function DataGrid(){
               <option
                 className="font-sora font-normal"
                 value=""
-                disabled
               >
                 Select capsule type{" "}
               </option>
@@ -223,7 +254,6 @@ export function DataGrid(){
               <option
                 className="font-sora font-normal"
                 value=""
-                disabled
               >
                 Select status{" "}
               </option>

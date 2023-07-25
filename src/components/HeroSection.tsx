@@ -103,8 +103,7 @@ export function HeroSection(){
 
             <div className="max-w-3xl text-center mx-auto">
               <p className="font-sora text-lg text-gray-400">
-                All the latest information on the activities of SpaceX and their
-                quest to explore the universe.
+              We design, manufacture and launch advanced rockets and spacecraft.
               </p>
             </div>
 
