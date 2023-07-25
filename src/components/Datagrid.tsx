@@ -33,10 +33,12 @@ export function DataGrid(){
     const tableHeader = ['Type' , 'Serial' ,  'Water landings' , 'Land landings' , 'Last update', ''];
     const launchTableHeader = ['Name','Date ' , 'Details']
     const url = "http://127.0.0.1:8000/capsules"; 
+    const tokenUrl = "http://127.0.0.1:8000/generateToken";
     const status = [ "active" , "destroyed", "retired",  "unknown"]
     const types = [ "Dragon 1.0" , "Dragon 1.1" , "Dragon 2.0"]
 
     const [isloading,setIsLoading] = useState(false)
+    const [token , setToken] = useState("");
     const [data , setData] = useState<capsuleType>()
     const [launch , setLauch] = useState<launchType>([])
     const [isOpen,setIsOpen] = useState(false)
@@ -53,6 +55,8 @@ export function DataGrid(){
         startDate: null, 
         endDate: null
         }); 
+
+            
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleValueChange = (newValue: any) => {
@@ -124,32 +128,48 @@ export function DataGrid(){
             })
         )
     }
-   
+
+
     useEffect(() => {
-        const fetchCapsuleData = () => {
+        
+        const fetchCapsuleData =  () => {
             setIsLoading(true)
-            fetch(url, {
-               method: 'POST',
-               //mode: 'cors',
-               //credentials: 'include',
-               headers: {
-                  "Content-Type": "application/json",
-               },
-               body: JSON.stringify(query)
-            //    redirect: 'follow'
-            })
-            .then(response => response.json())
-            //.then(response => response.text())
-            .then(data => {
-                setData(data)
-                setIsLoading(false)
-            })
-            .catch(function(error){
-              console.log("Request failed" , error)
-            })
+            fetch(tokenUrl,{method: 'GET'})
+                .then((response) => {
+                    return response.json()   
+                })
+                .then((data) => {
+                  return  fetch(url, {
+                            method: 'POST',
+                           //mode: 'cors',
+                           //credentials: 'include',
+                            headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + data.token
+                            },
+                            body: JSON.stringify(query),
+                            redirect: 'follow'
+                     })
+                })
+                .then((response) => {
+                    return response.json()
+                })
+                .then((data) => {
+                    setData(data)
+                    setIsLoading(false)
+                })
+                .catch(function(error){
+                    console.log("Request failed" , error)
+                  }) 
+            
+              
+           
+            
       }
+
+      fetchCapsuleData()
   
-        fetchCapsuleData()
+        
     },[query])
 
     return (
