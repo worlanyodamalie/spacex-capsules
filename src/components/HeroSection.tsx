@@ -114,7 +114,7 @@ export function HeroSection(){
               >
                 Get started
                 <svg
-                  className="w-2.5 h-2.5"
+                  className="w-2.5 h-2.5 rotate-90"
                   width={16}
                   height={16}
                   viewBox="0 0 16 16"

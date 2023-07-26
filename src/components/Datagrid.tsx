@@ -1,6 +1,4 @@
 import  { useState,useEffect } from "react";
-import Datepicker from "react-tailwindcss-datepicker"; 
-// import { DatepickerType , DateValueType } from "react-tailwindcss-datepicker/dist/types";
 
 import Modal from "./Modal";
 import { Skeleton } from ".";
@@ -52,19 +50,11 @@ export function DataGrid(){
            
         }
     })
-    const [value, setValue] = useState({ 
-        // startDate: new Date(), 
-        // endDate: new Date().setMonth(12)
-        startDate: null, 
-        endDate: null
-        }); 
+  
 
             
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleValueChange = (newValue: any) => {
-        setValue(newValue); 
-        }    
+     
     
     const previousPage = () => {
         setQuery(
@@ -274,7 +264,7 @@ export function DataGrid(){
           <button
             type="submit"
             // className="px-3 py-2 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            className="font-sora  justify-center flex-auto w-100 text-center py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+            className="font-sora justify-center flex-auto w-100 text-center py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:outline-none focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
           >
             {/* <svg
               aria-hidden="true"
@@ -342,7 +332,7 @@ export function DataGrid(){
                                   : " land landing"}
                               </td>
                               <td className="px-6 py-4 font-sora font-normal w-[30rem]">
-                                {item.last_update}
+                                {item.last_update === null ? "N/A" : item.last_update}
                               </td>
                               <td className="px-6 py-4 font-sora font-normal">
                                 <button

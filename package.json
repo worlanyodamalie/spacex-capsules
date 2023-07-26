@@ -14,8 +14,7 @@
     "dayjs": "^1.11.9",
     "jest-environment-jsdom": "^29.6.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-tailwindcss-datepicker": "^1.6.5"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.9",
