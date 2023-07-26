@@ -3,9 +3,8 @@ import { getByTestId, render  } from '@testing-library/react';
 import { DataGrid } from "../components/Datagrid";
 import fetchMock from "jest-fetch-mock";
 import fetch from "jest-fetch-mock";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-// 
+
+
 const response = {
     "docs": [],
     "totalDocs": 25,

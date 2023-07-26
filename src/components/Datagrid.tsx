@@ -173,8 +173,8 @@ export function DataGrid(){
                     setData(data)
                     setIsLoading(false)
                 })
-                .catch(function(error){
-                    console.log("Request failed" , error)
+                .catch(function(){
+                    //console.log("Request failed" , error)
                   }) 
             
               
